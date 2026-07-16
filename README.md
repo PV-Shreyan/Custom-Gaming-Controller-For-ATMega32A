@@ -7,9 +7,10 @@ What you need:
 3. Sadly, this is not a simple plug and play thing as this MCU lacks the native USB support for it so you'll need to download these three programs for now: "vJoySerialFeeder" (v1.7.1), "HidHide configuration client" (v1.5.230.0) and "XOutput" (v3.31)
 
 4. Now to the fun part. The components:
-   1 ATMega32A MCU
-   1 USB/ASP Programmer
-   1 UART-to-USB Converter (featuring CP2102 UART-to-TTL serial chip)
-   2 standard PS2 joysticks
-   16 push buttons
-   
+```text
+1 ATMega32A MCU
+1 USB/ASP Programmer
+1 UART-to-USB Converter (featuring CP2102 UART-to-TTL serial chip)
+2 standard PS2 joysticks (5 pins)
+16 push buttons
+```
