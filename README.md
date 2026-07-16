@@ -61,7 +61,16 @@ For the UART-to-TTL converter, you should connect the Tx and Rx pins in a criss-
 
 # Configuring vJoySerialFeeder:
 * Note that the ATMega32A does not have native USB support, so when we use a UART-to-TTL converter, the connection will appear as a standard COM device. This type of connection will be useless as games don't read COM devices, they expect a HID devices __(Human Interface Device)__
-* This is why we will use vJoySerialFeeder which will configure our COM port as a HID port.
+<br><br/>
+This is why we will use vJoySerialFeeder. This will configure our COM port as a HID port which we can use for our games.
+<br><br/>
+Open the __"Configure vJoy"__ application and select the following settings from the image below and select __"Add Device"__
+<br><br/>
+<img width="543" height="718" alt="image" src="https://github.com/user-attachments/assets/49382e40-1885-402c-818a-80069c9e655c" />
+<br><br/>
+If you did everything perfectly, now if you open __"vJoy Device List"__ you should be able to see "1" under a __"List vJoy Devices"__ and you should also be able to see a vJoy Device in your __"Device Manager"__.
+
+
 
 | Feature | Specification | 
 | --- | --- |
