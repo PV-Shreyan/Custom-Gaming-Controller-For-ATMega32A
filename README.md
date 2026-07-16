@@ -7,7 +7,7 @@ For this Project, I'll go over step-by-step on what you need to do to get this t
 # What you need:
 1. First an formost an IDE to code. I used Microchip Studio, you can use any IDE you like.
 2. Second, a flasher to flash you code onto the MCU (Microcontroller). I used WinAVRFlasher, you can use any other flasher you like.
-3. Sadly, this is not a simple plug and play thing as this MCU lacks the native USB support for it so you'll need to download these three programs for now:
+3. Sadly, this is not a simple plug and play thing as this MCU lacks the native USB support for it so you'll need to download and use these three programs for now:
 
 [vJoySerialFeeder](https://github.com/Cleric-K/vJoySerialFeeder) (v1.7.1)\
 [HidHide configuration client](https://github.com/nefarius/HidHide) (v1.5.230.0)\
@@ -27,13 +27,25 @@ few 10k ohm resistors, 2 100nF capacitors, 1 10uH inductor
 
 Now that we have all the necessary components and softwares. The only thing left to do is to actually wire the hardware. Take the below image as reference for wiring your controller.
 
+I've written the code in the button format of an XBOX controller.
+<br><br/>
+<img width="988" height="516" alt="image" src="https://github.com/user-attachments/assets/91e9e2f2-ec28-488e-8f93-de25c0ec8dcd" />
+<br><br/>
+If you are following the connections on the image exactly as is then you can use the code as it is but if you aren't then comment the original keypad block and uncomment the block under it.
+<br><br/>
 <img width="1141" height="805" alt="image" src="https://github.com/user-attachments/assets/a1d65bad-0c52-42e3-9440-9a44a8fe6dbf" />
-
-If you are following the connections on the image exactly then you can run the code as is but if you aren't then comment the original  
+<br><br/>
+Quickly note that the X-axis and Y-axis 
+Now, I hope that you are all set up and ready to go. Now, build your project and create a hex file and flash the MCU. Note that these should be your settings if you are using WinAVRFlasher.
+<br><br/>
+<img width="1207" height="688" alt="image" src="https://github.com/user-attachments/assets/be28c06f-f76d-4634-bbe3-db5a9788f9e0" />
+<br><br/>
+you can ignore the baud rate and port setting in WinAVRFlasher.
 
 | Feature | Specification | 
 | --- | --- |
 | Baudrate | 250000 |
 | Latency | 5-6ms |
+| Programmable | 4 |
+| ADC | 10-bit |
 |  |  |
-
