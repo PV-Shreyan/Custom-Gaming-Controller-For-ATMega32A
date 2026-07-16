@@ -1,0 +1,239 @@
+/*
+ * MCI_PROJECT_IBUS.c
+ *
+ * Created: 05-05-2026 12:54:25
+ * Author : PV shreyan
+ */ 
+
+#define F_CPU 8000000UL
+#include <avr/io.h>
+#include <util/delay.h>
+#include <stdio.h>
+
+// Global Variables
+int X1, Y1, X2, Y2, B1, B2;			// ADC stuff
+int Y, X, B, A;						// Face buttons
+int UP, LEFT, RIGHT, DOWN;			// DPAD buttons	
+int RT, LT, RB, LB;					// Triggers and Bumpers
+int PS1, PS2, PS3 ,PS4;				// Extra buttons
+
+void ADC_INIT () {
+	DDRA = 0b00000000;				// all are i/p
+	PORTA = 0b00100100;				// enable internal pull-up on PA2 & PA5 cuz buttons
+	ADCSRA = 0b10000111;			// 0x87 = 8: 1000, enables ADC; 7: 0111 selects 128 prescaler = 8MHz / 128 = 62500Hz
+	ADMUX = 0b01000000;				// 0x40 = 4: 0100, choose VRef of VCC (+5V)
+}
+
+int ADC_READ (char channel) {
+	int ADC_VALUE;
+	
+	ADMUX = (0b01000000) | (channel & 0b00000111);	// 01 (Bit 7,6) chooses VRef; 0 Chooses left/right (1/0) adjustment (pushed 16) (Bit 5); Bit 4-0, select channels
+	_delay_us (10);
+	ADCSRA |= 0b01000000;							// 0x40 = Initiates ADC and starts reading analog voltage
+	while ((ADCSRA & 0b00010000) == 0);				// 0x10 = Monitors when ADC conversion flag, when conversion is finished this flag is set to 1
+	
+	ADCSRA |= 0b00010000;				     // 0x10 = Clear the ADIF interrupt flag by writing 1 on that bit
+	ADC_VALUE = (int)ADCL;					 // Read the lower byte first to lock it cuz ADC_Value is 10 bit chopped into lower 8 bits and upper 2 bits
+	ADC_VALUE = ADC_VALUE + (int)ADCH * 256; // Read the higher 2 bits, Multiply with weightage to shift them 8 times left
+
+	return ADC_VALUE;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void UART_INIT (long USART_BAUDRATE) {
+	unsigned int BAUD_PRESCALE = (((F_CPU / (USART_BAUDRATE * 16UL))) - 1);
+	UCSRB = 0b00011000;				// Enable Receiver (Bit 4) and Transmitter (Bit 3)
+	UCSRC = 0b10000110;				// Set MSB to 1 or data will be written to UBRRH (Bit 7); if only UCSZ1 & UCSZ0 are 1, then character size is 8 (Bits 2, 1)
+	UBRRL = BAUD_PRESCALE;			// Load lower 8-bits of the baud rate
+	UBRRH = (BAUD_PRESCALE >> 8);	// Load upper 8-bits
+}
+
+void UART_TX_CHAR (char ch) {
+	while ((UCSRA & 0b00100000) == 0);  /* Wait for empty transmit buffer */
+	UDR = ch ;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SEND_IBUS () {
+	unsigned char iBus[32];
+	unsigned int checksum = 0xFFFF;
+	unsigned int channels[14];
+	
+	// 1. IBUS Header bytes (Tells PC a packet is starting)
+	iBus[0] = 0x20;
+	iBus[1] = 0x40;
+
+	// 2. Map Analog Joysticks (Channels 1 to 4)
+	// Adding 1000 shifts your 0-1023 ADC values into the 1000-2023 IBUS range
+	channels[0] = X1 + 1000;
+	channels[1] = Y1 + 1000;
+	channels[2] = X2 + 1000;
+	channels[3] = Y2 + 1000;
+	
+	// 3. Map all 16 Buttons into a single 16-bit package (Channel 5)
+	unsigned int buttons = 0;
+	if (B1) buttons |= (1 << 0);    // Bit 0
+	if (B2) buttons |= (1 << 1);    // Bit 1
+	if (Y) buttons |= (1 << 2);     // Bit 2
+	if (X) buttons |= (1 << 3);     // Bit 3
+	if (B) buttons |= (1 << 4);     // Bit 4
+	if (A) buttons |= (1 << 5);     // Bit 5
+	if (UP) buttons |= (1 << 6);	// Bit 6
+	if (LEFT) buttons |= (1 << 7);	// Bit 7
+	if (RIGHT) buttons |= (1 << 8); // Bit 8
+	if (DOWN) buttons |= (1 << 9);  // Bit 9
+	if (RT) buttons |= (1 << 10);   // Bit 10
+	if (LT) buttons |= (1 << 11);   // Bit 11
+	if (RB) buttons |= (1 << 12);   // Bit 12
+	if (LB) buttons |= (1 << 13);   // Bit 13
+	if (PS1) buttons |= (1 << 14);  // Bit 14
+	if (PS2) buttons |= (1 << 15);  // Bit 15
+	
+	channels[4] = buttons;
+	
+	// 4. Fill unused channels with neutral center (1500)
+	for (int i = 5; i < 14; i++) {
+		channels[i] = 1500;
+	}
+
+	// 5. Calculate Checksum and package the data array
+	// (We subtract the first two header bytes from the checksum right away)
+	checksum = checksum - iBus[0] - iBus[1];
+	
+	for (int i = 0; i < 14; i++) {
+		// Chop the 16-bit channels into two 8-bit bytes
+		iBus[2 + (i*2)] = channels[i] & 0xFF;         // Low Byte
+		iBus[3 + (i*2)] = (channels[i] >> 8);         // High Byte
+		
+		// Subtract the chopped bytes from the checksum
+		checksum -= iBus[2 + (i*2)];
+		checksum -= iBus[3 + (i*2)];
+	}
+
+	// 6. Add Checksum to the very end of the packet
+	iBus[30] = checksum & 0xFF;
+	iBus[31] = (checksum >> 8);
+
+	// 7. Blast the raw 32 bytes down the UART highway!
+	for (int i = 0; i < 32; i++) {
+		UART_TX_CHAR (iBus[i]);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void KEYPAD_INIT () {
+	DDRB = 0b00000000;
+	DDRC = 0b00000000;
+	DDRD = 0b00000000;
+	PORTB = 0b11111111;
+	PORTC = 0b11111111;
+	PORTD = 0b11111111;
+}
+
+void FACE_BUTTONS () {
+	if ((PINC & 0b10000000) == 0) {
+		Y = 1;
+	} else Y = 0;
+	
+	if ((PINC & 0b01000000) == 0) {
+		X = 1;
+	} else X = 0;
+	
+	if ((PINC & 0b00100000) == 0) {
+		B = 1;
+	} else B = 0;
+	
+	if ((PINC & 0b00010000) == 0) {
+		A = 1;
+	} else A = 0;
+}
+
+void DPAD_BUTTONS () {
+	if ((PINC & 0b00001000) == 0) {
+		UP = 1;
+	} else UP = 0;
+	
+	if ((PINC & 0b00000100) == 0) {
+		LEFT = 1;
+	} else LEFT = 0;
+	
+	if ((PINC & 0b00000010) == 0) {
+		RIGHT = 1;
+	} else RIGHT = 0;
+	
+	if ((PINC & 0b00000001) == 0) {
+		DOWN = 1;
+	} else DOWN = 0;
+}
+
+void TRIG_BUMP_BUTTONS () {
+	if ((PIND & 0b10000000) == 0) {
+		RT = 1;
+	} else RT = 0;
+	
+	if ((PIND & 0b01000000) == 0) {
+		LT = 1;
+	} else LT = 0;
+	
+	if ((PIND & 0b00100000) == 0) {
+		RB = 1;
+	} else RB = 0;
+	
+	if ((PIND & 0b00010000) == 0) {
+		LB = 1;
+	} else LB = 0;
+}
+
+void PROGRAMMABLE_BUTTONS () {
+	if ((PINB & 0b00001000) == 0) {
+		PS1 = 1;
+	} else PS1 = 0;
+	
+	if ((PINB & 0b00000100) == 0) {
+		PS2 = 1;
+	} else PS2 = 0;
+	
+	if ((PINB & 0b00000010) == 0) {
+		PS3 = 1;
+	} else PS3 = 0;
+	
+	if ((PINB & 0b00000001) == 0) {
+		PS4 = 1;
+	} else PS4 = 0;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int main (void) {
+	ADC_INIT ();
+	KEYPAD_INIT ();
+	UART_INIT (250000);
+
+	while (1) {
+		X1 = ADC_READ (0);
+		Y1 = ADC_READ (1);
+		X2 = ADC_READ (3);
+		Y2 = ADC_READ (4);
+		
+		if ((PINA & 0b00000100) == 0) {
+			B1 = 1;
+		} else B1 = 0;
+		
+		if ((PINA & 0b00100000) == 0) {
+			B2 = 1;
+		} else B2 = 0;
+		
+		FACE_BUTTONS ();
+		DPAD_BUTTONS ();
+		TRIG_BUMP_BUTTONS ();
+		PROGRAMMABLE_BUTTONS ();
+		
+		SEND_IBUS ();
+		 
+		_delay_ms (4);
+	}
+}
+
