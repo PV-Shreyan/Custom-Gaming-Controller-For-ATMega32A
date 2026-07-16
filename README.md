@@ -68,14 +68,15 @@ Open the __"Configure vJoy"__ application and select the following settings from
 <br><br/>
 <img width="543" height="718" alt="image" src="https://github.com/user-attachments/assets/49382e40-1885-402c-818a-80069c9e655c" />
 <br><br/>
+
 If you did everything perfectly, now if you open __"vJoy Device List"__ you should be able to see "1" under a __"List vJoy Devices"__ and you should also be able to see a vJoy Device in your __"Device Manager"__.
 
 
 
-| Feature | Specification | 
+| Features | Specifications | 
 | --- | --- |
 | Baudrate | 250000 |
 | Latency | 5-6ms |
 | Programmable Buttons | 4 |
 | ADC Resolution | 10-bit |
-|  |  |
+| Scalability | Infinite!! |
