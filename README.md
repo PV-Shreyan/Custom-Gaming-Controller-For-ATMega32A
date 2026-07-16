@@ -25,4 +25,15 @@ handful of male-to-male jumper cables and a few female-to-female and a few male-
 few 10k ohm resistors, 2 100nF capacitors, 1 10uH inductor
 ```
 
-Now that we have all the necessary components and softwares. The only thing left to do is to actually wire the hardware. Take the below image as reference for wiring your controller.\
+Now that we have all the necessary components and softwares. The only thing left to do is to actually wire the hardware. Take the below image as reference for wiring your controller.
+
+<img width="1141" height="805" alt="image" src="https://github.com/user-attachments/assets/a1d65bad-0c52-42e3-9440-9a44a8fe6dbf" />
+
+If you are following the connections on the image exactly then you can run the code as is but if you aren't then comment the original  
+
+| Feature | Specification | 
+| --- | --- |
+| Baudrate | 250000 |
+| Latency | 5-6ms |
+|  |  |
+
