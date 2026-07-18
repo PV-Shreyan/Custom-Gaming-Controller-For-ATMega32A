@@ -59,7 +59,7 @@ After Flashing the MCU, you can disconnect the programmer from your PC and remov
 <br><br/>
 For the UART-to-TTL converter, you should connect the Tx and Rx pins in a criss-crossed manner to the MCU and power the Converter with direct 5V from the MCU and connect its ground pin to a common ground with the MCU. This is __NECESSARY!!__
 
-# Configuring vJoySerialFeeder:
+# Configuring vJoy Device:
 * Note that the ATMega32A does not have native USB support, so when we use a UART-to-TTL converter, the connection will appear as a standard COM device. This type of connection will be useless as games don't read COM devices, they expect a HID devices __(Human Interface Device)__
 <br><br/>
 This is why we will use vJoySerialFeeder. This will configure our COM port as a HID port which we can use for our games.
@@ -68,10 +68,22 @@ Open the __"Configure vJoy"__ application and select the following settings from
 <br><br/>
 <img width="543" height="718" alt="image" src="https://github.com/user-attachments/assets/49382e40-1885-402c-818a-80069c9e655c" />
 <br><br/>
+If you did everything perfectly, now if you open __"vJoy Device List"__ you should be able to see "1" under a __"List vJoy Devices"__ as shown below and you should also be able to see a vJoy Device in your __"Device Manager"__ as shown below.
+<br><br/>
+<img width="469" height="684" alt="image" src="https://github.com/user-attachments/assets/fcead74c-3fae-4eaa-8cbc-5e43cc9d31ed" />
+<br><br/>
+Now, that you can see the device. Let's move to configuring the buttons and joysticks. Open __"vJoySerialFeeder.exe"__ and configure your settings to match the image.
 
-If you did everything perfectly, now if you open __"vJoy Device List"__ you should be able to see "1" under a __"List vJoy Devices"__ and you should also be able to see a vJoy Device in your __"Device Manager"__.
+<img width="1093" height="937" alt="image" src="https://github.com/user-attachments/assets/0571cb8f-ec4a-4be6-a2bb-07ffb11efed5" />
 
+* Then give a name to your profile and save it. Now, if you did everything right you can test it by pressing some buttons on your controllers. You should see some feedback on the __"vJoySerialFeeder.exe"__ screen.
 
+* Now, we are also done with configuring the vJoy device and serial feeder. Now you have a choice here, you can either use this virtual device as DirectInput configuration or you can can take it further by using __"XOutput.exe"__ to make this configuration Microsoft's XInput standard.
+
+* There isn't much difference between the two input standards expect better support and accuracy from XInput.
+
+# Configuring XInput:
+* J
 
 | Features | Specifications | 
 | --- | --- |
